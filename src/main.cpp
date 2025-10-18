@@ -1,23 +1,46 @@
 #include "Arduino.h"
 
-#define BOTAO_PIN 33 // botão conectado ao pino 33
+#define PINO_BOTAO 33    // pino conectado ao botão
+#define TEMPO_SONO 15000 // 15 segundos (simulado)
 
-int estadoBotao = HIGH; 
+unsigned long tempo_inicio = 0;
+bool dormindo = false;
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   delay(500);
 
-  pinMode(BOTAO_PIN, INPUT_PULLUP);
+  pinMode(PINO_BOTAO, INPUT_PULLUP);
 
-  Serial.println("Programa iniciado!");
+  Serial.println("Início do programa.");
 }
 
-void loop() {
-    estadoBotao = digitalRead(BOTAO_PIN);
-    
-    if(estadoBotao == LOW){
-        Serial.println("Botão pressionado!");
-        delay(200);
-    }
+void loop()
+{
+  if (!dormindo)
+  {
+    Serial.println("Entrando em modo sleep por 15 segundos...");
+    tempo_inicio = millis();
+    dormindo = true;
+  }
+
+  // simulação do tempo de sono
+  if (dormindo && millis() - tempo_inicio >= TEMPO_SONO)
+  {
+    dormindo = false;
+    Serial.println("Acordado por timer");
+  }
+
+  // botão se pressionado
+  if (digitalRead(PINO_BOTAO) == LOW)
+  {
+    dormindo = false;
+    Serial.println("Acordado por botão");
+    delay(300);
+
+    while (digitalRead(PINO_BOTAO) == LOW)
+      ;                      // espera soltar o botão
+    tempo_inicio = millis(); // reinicia o sono simulado
+  }
 }
