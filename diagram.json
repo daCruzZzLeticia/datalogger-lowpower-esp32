@@ -3,25 +3,41 @@
   "author": "Letícia Cruz",
   "editor": "wokwi",
   "parts": [
-    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 105.6, "left": 24.04, "attrs": {} },
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": -19.2, "left": -52.76, "attrs": {} },
+    {
+      "type": "wokwi-ntc-temperature-sensor",
+      "id": "ntc1",
+      "top": 12.2,
+      "left": -250.2,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-photoresistor-sensor",
+      "id": "ldr2",
+      "top": 195.2,
+      "left": -306.4,
+      "attrs": {}
+    },
     {
       "type": "wokwi-pushbutton-6mm",
       "id": "btn1",
-      "top": 199.4,
-      "left": -76.8,
-      "attrs": { "color": "red", "xray": "1" }
+      "top": -69.4,
+      "left": -19.2,
+      "attrs": { "color": "blue", "xray": "1" }
     }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [
-      "btn1:1.l",
-      "esp:33",
-      "green",
-      [ "h9.6", "v0", "h9.6", "v0", "h0", "v0", "h28.8", "v0", "h9.6", "v0", "h48" ]
-    ],
-    [ "btn1:2.l", "esp:GND.2", "green", [ "h-57.6", "v-124.4", "h288" ] ]
+    [ "ntc1:VCC", "esp:3V3", "red", [ "h28.8", "v-134.4" ] ],
+    [ "ntc1:OUT", "esp:35", "green", [ "h0" ] ],
+    [ "ntc1:GND", "esp:GND.1", "black", [ "h19.2", "v96" ] ],
+    [ "btn1:2.l", "esp:GND.2", "green", [ "h240", "v48.4" ] ],
+    [ "btn1:1.l", "esp:33", "green", [ "h-57.6", "v144" ] ],
+    [ "ldr2:GND", "esp:GND.3", "black", [ "h211.2", "v-154" ] ],
+    [ "ldr2:AO", "esp:34", "green", [ "h67.2", "v-192.7" ] ],
+    [ "ldr2:DO", "esp:25", "green", [ "h48", "v-0.6" ] ],
+    [ "ldr2:VCC", "esp:3V3", "red", [ "h76.8", "v-192", "h-9.6" ] ]
   ],
   "dependencies": {}
 }
