@@ -1,35 +1,23 @@
-#include <Arduino.h>
+#include "Arduino.h"
 
-const int potPin = 34; // Pin potensiometer
-const int ledPin = 4;  // Pin LED
+#define BOTAO_PIN 33 // botão conectado ao pino 33
 
-int potValue = 0;
-int ledValue = 0;
+int estadoBotao = HIGH; 
 
-void setup()
-{
-    Serial.begin(115200);
-    pinMode(potPin, INPUT);
-    pinMode(ledPin, OUTPUT);
-    Serial.println("Monitoring potensiometer dan LED siap!");
+void setup() {
+  Serial.begin(115200);
+  delay(500);
+
+  pinMode(BOTAO_PIN, INPUT_PULLUP);
+
+  Serial.println("Programa iniciado!");
 }
 
-void loop()
-{
-    // Baca nilai potensiometer (0–4095)
-    potValue = analogRead(potPin);
-
-    // Ubah ke skala 0–255 untuk kecerahan LED
-    ledValue = map(potValue, 0, 4095, 0, 255);
-
-    // Atur kecerahan LED langsung dengan analogWrite
-    analogWrite(ledPin, ledValue);
-
-    // Cetak ke Serial Monitor
-    Serial.print("Nilai Pot: ");
-    Serial.print(potValue);
-    Serial.print(" | Kecerahan LED: ");
-    Serial.println(ledValue);
-
-    delay(100);
+void loop() {
+    estadoBotao = digitalRead(BOTAO_PIN);
+    
+    if(estadoBotao == LOW){
+        Serial.println("Botão pressionado!");
+        delay(200);
+    }
 }
