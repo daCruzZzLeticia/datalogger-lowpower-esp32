@@ -165,6 +165,57 @@ public:
         sensores_inicializados = true;
         Serial.println("Gerenciador de Sensores inicializado");
     }
+
+    /**
+     * Lê todos os sensores disponíveis
+     * Retorna estrutura com dados e flags de validade
+     */
+
+    DadosSensores lerSensores()
+    {
+        DadosSensores dados;
+
+        if (!sensores_inicializados)
+        {
+            Serial.println("Sensores não inicializados! Chamando iniciar()...");
+            iniciar();
+        }
+
+        dados.timestamp_leitura = millis();
+
+        // Tenta ler sensores reais (código unificado)
+        if (!mock_temperatura)
+        {
+            dados.temperatura = lerTemperatura();
+            dados.temperatura_valida = !isnan(dados.temperatura);
+
+            if (!dados.temperatura_valida && SENSORES_MOCKS)
+            {
+                Serial.println("Leitura de temperatura falhou - usando MOCK");
+                mock_temperatura = true;
+            }
+        }
+
+        if (!mock_luminosidade)
+        {
+            dados.luminosidade = lerLuminosidade();
+            dados.luminosidade_valida = !isnan(dados.luminosidade);
+
+            if (!dados.luminosidade_valida && SENSORES_MOCKS)
+            {
+                Serial.println("Leitura de luminosidade falhou - usando MOCK");
+                mock_luminosidade = true;
+            }
+        }
+
+        // Se precisar, usa dados mock
+        if (mock_temperatura || mock_luminosidade)
+        {
+            gerarDadosMock(dados);
+        }
+
+        return dados;
+    }
 };
 
 #endif
