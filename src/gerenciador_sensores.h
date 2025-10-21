@@ -1,4 +1,4 @@
-// sensor_manager.h (VERSÃO SIMPLIFICADA)
+// sensor_manager.h
 #ifndef SENSOR_MANAGER_H
 #define SENSOR_MANAGER_H
 
@@ -37,6 +37,39 @@ float lerTemperatura()
     Serial.println(" °C");
 
     return temperatura_celsius;
+}
+
+float lerLuminosidade()
+{
+    Serial.println("Lendo sensor de luminosidade...");
+
+    int leitura_analogica = analogRead(PINO_FOTORESISTOR);
+
+    // se a leitura está nos padrões para ESP32 (se há sensor conectado)
+    if (leitura_analogica < 10 || leitura_analogica > 4090)
+    {
+        Serial.println("Sensor de luminosidade não respondendo");
+        return NAN;
+    }
+
+    // converte leitura analógica para luminosidade em lux
+    float tensao = leitura_analogica / 4096.0 * 3.3;
+    float resistencia = 2000.0 * tensao / (1.0 - tensao / 3.3);
+
+    float luminosidade_lux = pow(RESISTENCIA_LDR * 1000.0 * pow(10.0, GAMA_LDR) / resistencia, (1.0 / GAMA_LDR));
+
+    // verifica se o valor está dentro de limites razoáveis
+    if (luminosidade_lux < 0.1 || luminosidade_lux > 100000.0)
+    {
+        Serial.println("Luminosidade fora dos limites razoáveis");
+        return NAN;
+    }
+
+    Serial.print("Luminosidade lida: ");
+    Serial.print(luminosidade_lux);
+    Serial.println(" lux");
+
+    return luminosidade_lux;
 }
 
 #endif
