@@ -56,6 +56,11 @@ float lerLuminosidade()
     float tensao = leitura_analogica / 4096.0 * 3.3;
     float resistencia = 2000.0 * tensao / (1.0 - tensao / 3.3);
 
+    if (resistencia <= 0)
+    {
+        return NAN; // evita divisão por zero
+    }
+
     float luminosidade_lux = pow(RESISTENCIA_LDR * 1000.0 * pow(10.0, GAMA_LDR) / resistencia, (1.0 / GAMA_LDR));
 
     // verifica se o valor está dentro de limites razoáveis
