@@ -167,8 +167,8 @@ public:
     }
 
     /**
-     * Lê todos os sensores disponíveis
-     * Retorna estrutura com dados e flags de validade
+     * lê todos os sensores disponíveis
+     * retorna estrutura com dados e flags de validade
      */
 
     DadosSensores lerSensores()
@@ -183,7 +183,7 @@ public:
 
         dados.timestamp_leitura = millis();
 
-        // Tenta ler sensores reais (código unificado)
+        // tenta ler sensores reais
         if (!mock_temperatura)
         {
             dados.temperatura = lerTemperatura();
@@ -208,13 +208,24 @@ public:
             }
         }
 
-        // Se precisar, usa dados mock
+        // se precisar, usa dados mock
         if (mock_temperatura || mock_luminosidade)
         {
             gerarDadosMock(dados);
         }
 
         return dados;
+    }
+
+    // informa quais sensores estão usando dados reais
+
+    void imprimirStatus()
+    {
+        Serial.println("\nSTATUS DOS SENSORES:");
+        Serial.print("🌡️Temperatura: ");
+        Serial.println(mock_temperatura ? "MOCK" : "REAL");
+        Serial.print("💡Luminosidade: ");
+        Serial.println(mock_luminosidade ? "MOCK" : "REAL");
     }
 };
 
