@@ -5,6 +5,17 @@
 #include "config.h"
 #include "Arduino.h"
 
+// ESTRUTURA PARA ARMAZENAR DADOS DOS SENSORES
+
+struct DadosSensores
+{
+    float temperatura;          // temperatura em graus Celsius
+    float luminosidade;         // luminosidade em lux
+    bool temperatura_valida;    // leitura de temperatura confiável
+    bool luminosidade_valida;   // leitura de luminosidade confiável
+    uint32_t timestamp_leitura; // quando a leitura foi feita (millis)
+};
+
 // LEITURA DE SENSORES FÍSICOS E SIMULADOS POR WOKWI SÃO IGUAIS
 
 float lerTemperatura()
