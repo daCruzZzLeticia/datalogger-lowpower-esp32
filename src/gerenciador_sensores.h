@@ -125,6 +125,46 @@ public:
         mock_luminosidade = false;
         contador_mock = 0;
     }
+
+    void iniciar()
+    {
+        Serial.println("\nInicializando Gerenciador de Sensores...");
+
+        // configura os pinos
+        pinMode(PINO_TERMISTOR, INPUT);
+        pinMode(PINO_FOTORESISTOR, INPUT);
+
+        Serial.println("Detectando sensores disponíveis...");
+
+        // teste sensor de temperatura
+        float teste_temperatura = lerTemperatura();
+        if (!isnan(teste_temperatura))
+        {
+            Serial.println("Sensor de temperatura detectado");
+            mock_temperatura = false;
+        }
+        else
+        {
+            Serial.println("Sensor de temperatura não disponível - usando MOCK");
+            mock_temperatura = true;
+        }
+
+        // testa sensor de luminosidade
+        float teste_luminosidade = lerLuminosidade();
+        if (!isnan(teste_luminosidade))
+        {
+            Serial.println("Sensor de luminosidade detectado");
+            mock_luminosidade = false;
+        }
+        else
+        {
+            Serial.println("Sensor de luminosidade não disponível - usando MOCK");
+            mock_luminosidade = true;
+        }
+
+        sensores_inicializados = true;
+        Serial.println("Gerenciador de Sensores inicializado");
+    }
 };
 
 #endif
