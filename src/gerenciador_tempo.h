@@ -26,6 +26,45 @@ private:
     bool tempo_inicializado;
     unsigned long ultima_sincronizacao;
     unsigned long epoch_fallback; // usado se NTP falha
+
+    // sincroniza com servidor NTP
+    bool sincronizarNTP()
+    {
+        Serial.println("tentando sincronizar com NTP...");
+
+#ifdef AMBIENTE_WOKWI
+
+        // no Wokwi, simula uma sincronização
+        Serial.println("wokwi: simulando sincronização NTP");
+        configTime(gmt_offset_sec, daylight_offset_sec, ntp_server);
+
+        // no Wokwi, sempre sincroniza
+        Serial.println("sincronização NTP simulada com sucesso");
+        return true;
+
+#else
+        // No ESP32 físico - sincronização real
+        configTime(gmt_offset_sec, daylight_offset_sec, ntp_server);
+
+        // Aguarda a sincronização (máximo 10 segundos)
+        Serial.print("aguardando sincronização NTP");
+        for (int i = 0; i < 20; i++)
+        {
+            delay(500);
+            Serial.print(".");
+
+            struct tm timeinfo;
+            if (getLocalTime(&timeinfo))
+            {
+                Serial.println("\nsincronização NTP realizada com sucesso!");
+                return true;
+            }
+        }
+
+        Serial.println("\nfalha na sincronização NTP");
+        return false;
+#endif
+    }
 };
 
 #endif
