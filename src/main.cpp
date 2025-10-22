@@ -35,7 +35,7 @@ void setup()
 
 void loop()
 {
-  // entra em deep sleep simulado por 30 segundos
+  // ESTADO: ACORDADO - SIMULAÇÃO DO DEEP SLEEP
   if (!esta_dormindo)
   {
     Serial.println("\nNOVA LEITURA -------------");
@@ -82,6 +82,36 @@ void loop()
       tempo_inicio_sono = millis();
       Serial.println("\nClido de sono pode ser interrompido pressionando o botão conectado ao pino " + String(PINO_BOTAO));
       Serial.println("\nEntrando em modo deep sleep");
+    }
+  }
+
+  // ESTADO: DORMINDO - SIMULAÇÃO DO DEEP SLEEP
+
+  else
+  {
+
+    // PASSO 1: verificar se tempo de sonou terminou (WAKE-UP PROGRAMADO)
+    if (millis() - tempo_inicio_sono >= TEMPO_DEEP_SLEEP_DEMO)
+    {
+      esta_dormindo = false;
+      Serial.println("\nAcordado por TIMER");
+    }
+
+    // PASSO 2: verificar se botão foi pressionado (WAKE-UP MANUAL)
+    if (digitalRead(PINO_BOTAO) == LOW)
+    {
+      esta_dormindo = false;
+      Serial.println("\nAcordado por BOTÃO");
+      delay(300); // debounce simples
+
+      // esperar botão ser solto
+      while (digitalRead(PINO_BOTAO) == LOW)
+      {
+        delay(50);
+      }
+
+      // reinicia o contador do sono
+      tempo_inicio_sono = millis();
     }
   }
 }
