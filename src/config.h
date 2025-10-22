@@ -26,8 +26,8 @@
 // CONFIGURAÇÕES DE TEMPO
 
 // (tempos em milissegundos)
-#define TEMPO_AMOSTRAGEM_MS 30000    // 30 segundos entre leituras (para testes)
-#define TEMPO_AMOSTRAGEM_REAL 300000 // 5 minutos (300000 ms) - versão final
+#define TEMPO_DEEP_SLEEP_DEMO 30000      // 30 segundos entre leituras (para testes)
+#define TEMPO_DEEP_SLEEP_COMPLETO 300000 // 5 minutos (300000 ms) - versão final
 
 // CONFIGURAÇÕES DE SENSORES
 
