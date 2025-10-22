@@ -113,5 +113,13 @@ void loop()
       // reinicia o contador do sono
       tempo_inicio_sono = millis();
     }
+
+    // PASSO EXTRA: log sinal de vida
+    static unsigned long ultimo_pisca = 0;
+    if (millis() - ultimo_pisca > 1000)
+    {
+      Serial.print(".");
+      ultimo_pisca = millis();
+    }
   }
 }
