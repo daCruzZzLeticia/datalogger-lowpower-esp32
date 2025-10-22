@@ -122,4 +122,5 @@ void loop()
       ultimo_pisca = millis();
     }
   }
+  delay(200);
 }
