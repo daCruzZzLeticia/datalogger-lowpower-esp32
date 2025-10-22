@@ -1,7 +1,6 @@
-#include "Arduino.h"
-
 #include "config.h"
 #include "gerenciador_sensores.h"
+#include "Arduino.h"
 
 // cria o gerenciador de sensores
 GerenciadorSensores gerenciadorSensores;
