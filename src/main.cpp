@@ -15,14 +15,21 @@ void setup()
   Serial.begin(115200);
   delay(1000);
 
+  Serial.println("-----------------------------------------");
   Serial.println("Data Logger Inicializado");
 
   // configura o pino do botão para wake-up
   pinMode(PINO_BOTAO, INPUT_PULLUP);
   Serial.println("Botão configurado no pino: " + String(PINO_BOTAO));
 
-  Serial.println("-----------------------------------------");
-  Serial.println("MODO: Deep Sleep Simulado (30 segundos)");
+  // inicialização do gerenciador de sensores
+  gerenciadorSensores.iniciar(); // olhar sensores estão disponíveis
+
+  gerenciadorSensores.imprimirStatus(); // mostra o status dos sensores
+
+  Serial.println("\nSetup configurado");
+
+  Serial.println("Modo Deep Sleep Simulado (30 segundos)");
   Serial.println("-----------------------------------------");
 }
 
