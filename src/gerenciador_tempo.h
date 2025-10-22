@@ -15,4 +15,17 @@ struct DadosTempo
     char data_hora[20];                // string no formato "2024-01-15 14:30:25"
 };
 
+class GerenciadorTempo
+{
+private:
+    // configurações NTP
+    const char *ntp_server = "pool.ntp.org";
+    const long gmt_offset_sec = -3 * 3600; // GMT-3 (Brasília)
+    const int daylight_offset_sec = 0;
+
+    bool tempo_inicializado;
+    unsigned long ultima_sincronizacao;
+    unsigned long epoch_fallback; // usado se NTP falha
+};
+
 #endif
