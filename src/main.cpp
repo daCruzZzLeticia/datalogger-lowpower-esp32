@@ -68,20 +68,19 @@ void loop()
     else
     {
       Serial.println("[!] Luminosidade: Indisponível");
-
-      //**********************************************************
-      // PASSO 3: TO DOOOOOO (permanência de dados + checksun)
-      //**********************************************************
-
-      Serial.println("Tarefas concluídas");
-
-      // PASSO 4: entrar em modo deep sleep simulado
-      Serial.println("Definindo timer de sono para" + String(TEMPO_DEEP_SLEEP_DEMO / 1000) + " segundos...");
-      esta_dormindo = true;
-      tempo_inicio_sono = millis();
-      Serial.println("\nClido de sono pode ser interrompido pressionando o botão conectado ao pino " + String(PINO_BOTAO));
-      Serial.println("\nEntrando em modo deep sleep");
     }
+    //**********************************************************
+    // PASSO 3: TO DOOOOOO (permanência de dados + checksun)
+    //**********************************************************
+
+    Serial.println("Tarefas concluídas");
+
+    // PASSO 4: entrar em modo deep sleep simulado
+    Serial.println("Definindo timer de sono para" + String(TEMPO_DEEP_SLEEP_DEMO / 1000) + " segundos...");
+    esta_dormindo = true;
+    tempo_inicio_sono = millis();
+    Serial.println("\nClido de sono pode ser interrompido pressionando o botão conectado ao pino " + String(PINO_BOTAO));
+    Serial.println("\nEntrando em modo deep sleep");
   }
 
   // ESTADO: DORMINDO - SIMULAÇÃO DO DEEP SLEEP
