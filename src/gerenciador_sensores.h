@@ -30,14 +30,14 @@ private:
 
     float lerTemperatura()
     {
-        Serial.println("Lendo sensor de temperatura...");
+        Serial.println("lendo sensor de temperatura");
 
         int leitura_analogica = analogRead(PINO_TERMISTOR);
 
         // se a leitura está nos padrões para ESP32 (se há sensor conectado)
         if (leitura_analogica < 10 || leitura_analogica > 4090)
         {
-            Serial.println("Sensor de temperatura não respondendo");
+            Serial.println("    sensor de temperatura não respondendo");
             return NAN;
         }
 
@@ -49,11 +49,11 @@ private:
         // verifica se o valor está dentro de limites razoáveis
         if (temperatura_celsius < -50.0 || temperatura_celsius > 100.0)
         {
-            Serial.println("Temperatura fora dos limites razoáveis");
+            Serial.println("    temperatura fora dos limites razoáveis");
             return NAN;
         }
 
-        Serial.print("Temperatura lida: ");
+        Serial.print("  temperatura lida: ");
         Serial.print(temperatura_celsius);
         Serial.println(" °C");
 
@@ -62,14 +62,14 @@ private:
 
     float lerLuminosidade()
     {
-        Serial.println("Lendo sensor de luminosidade...");
+        Serial.println("lendo sensor de luminosidade");
 
         int leitura_analogica = analogRead(PINO_FOTORESISTOR);
 
         // se a leitura está nos padrões para ESP32 (se há sensor conectado)
         if (leitura_analogica < 10 || leitura_analogica > 4090)
         {
-            Serial.println("Sensor de luminosidade não respondendo");
+            Serial.println("    sensor de luminosidade não respondendo");
             return NAN;
         }
 
@@ -87,11 +87,11 @@ private:
         // verifica se o valor está dentro de limites razoáveis
         if (luminosidade_lux < 0.1 || luminosidade_lux > 100000.0)
         {
-            Serial.println("Luminosidade fora dos limites razoáveis");
+            Serial.println("    luminosidade fora dos limites razoáveis");
             return NAN;
         }
 
-        Serial.print("Luminosidade lida: ");
+        Serial.print("  luminosidade lida: ");
         Serial.print(luminosidade_lux);
         Serial.println(" lux");
 
@@ -114,7 +114,7 @@ private:
         dados.temperatura_valida = mock_temperatura;
         dados.luminosidade_valida = mock_luminosidade;
 
-        Serial.println("Usando dados MOCK (simulados)");
+        Serial.println("usando dados MOCK (simulados)");
     }
 
 public:
@@ -128,24 +128,24 @@ public:
 
     void iniciar()
     {
-        Serial.println("\nInicializando Gerenciador de Sensores...");
+        Serial.println("inicializando gerenciador de sensores...");
 
         // configura os pinos
         pinMode(PINO_TERMISTOR, INPUT);
         pinMode(PINO_FOTORESISTOR, INPUT);
 
-        Serial.println("Detectando sensores disponíveis...");
+        Serial.println("procurando sensores disponíveis...");
 
         // teste sensor de temperatura
         float teste_temperatura = lerTemperatura();
         if (!isnan(teste_temperatura))
         {
-            Serial.println("Sensor de temperatura detectado");
+            Serial.println("sensor de temperatura detectado!");
             mock_temperatura = false;
         }
         else
         {
-            Serial.println("Sensor de temperatura não disponível - usando MOCK");
+            Serial.println("sensor de temperatura não disponível - usando MOCK");
             mock_temperatura = true;
         }
 
@@ -153,17 +153,17 @@ public:
         float teste_luminosidade = lerLuminosidade();
         if (!isnan(teste_luminosidade))
         {
-            Serial.println("Sensor de luminosidade detectado");
+            Serial.println("sensor de luminosidade detectado!");
             mock_luminosidade = false;
         }
         else
         {
-            Serial.println("Sensor de luminosidade não disponível - usando MOCK");
+            Serial.println("sensor de luminosidade não disponível - usando MOCK");
             mock_luminosidade = true;
         }
 
         sensores_inicializados = true;
-        Serial.println("Gerenciador de Sensores inicializado");
+        Serial.println("gerenciador de sensores inicializado");
     }
 
     /**
@@ -177,7 +177,7 @@ public:
 
         if (!sensores_inicializados)
         {
-            Serial.println("Sensores não inicializados! Chamando iniciar()...");
+            Serial.println("sensores não inicializados! chamando iniciar()...");
             iniciar();
         }
 
@@ -191,7 +191,7 @@ public:
 
             if (!dados.temperatura_valida && SENSORES_MOCKS)
             {
-                Serial.println("Leitura de temperatura falhou - usando MOCK");
+                Serial.println("leitura de temperatura falhou - usando MOCK");
                 mock_temperatura = true;
             }
         }
@@ -203,7 +203,7 @@ public:
 
             if (!dados.luminosidade_valida && SENSORES_MOCKS)
             {
-                Serial.println("Leitura de luminosidade falhou - usando MOCK");
+                Serial.println("leitura de luminosidade falhou - usando MOCK");
                 mock_luminosidade = true;
             }
         }
@@ -221,10 +221,10 @@ public:
 
     void imprimirStatus()
     {
-        Serial.println("\nSTATUS DOS SENSORES:");
-        Serial.print("🌡️Temperatura: ");
+        Serial.println("\n[i] status dos sensores:");
+        Serial.print("  temperatura: ");
         Serial.println(mock_temperatura ? "MOCK" : "REAL");
-        Serial.print("💡Luminosidade: ");
+        Serial.print("  luminosidade: ");
         Serial.println(mock_luminosidade ? "MOCK" : "REAL");
     }
 };

@@ -13,23 +13,23 @@ void setup()
 {
   Serial.begin(115200);
   delay(1000);
+  Serial.println("------------------------------------------------");
+  Serial.println("sistema data logger - temperatura e luminosidade");
+  Serial.println("------------------------------------------------");
 
-  Serial.println("-----------------------------------------");
-  Serial.println("Data Logger Inicializado");
+  Serial.println("[modo]: configuração do sistema");
 
   // configura o pino do botão para wake-up
   pinMode(PINO_BOTAO, INPUT_PULLUP);
-  Serial.println("Botão configurado no pino: " + String(PINO_BOTAO));
+  Serial.println("\nbotão GPIO configurado no pino: " + String(PINO_BOTAO));
 
   // inicialização do gerenciador de sensores
-  gerenciadorSensores.iniciar(); // olhar sensores estão disponíveis
+  gerenciadorSensores.iniciar(); // olha sensores disponíveis
 
   gerenciadorSensores.imprimirStatus(); // mostra o status dos sensores
 
-  Serial.println("\nSetup configurado");
-
-  Serial.println("Modo Deep Sleep Simulado (30 segundos)");
-  Serial.println("-----------------------------------------");
+  Serial.println("\nconfigurações concluídas!");
+  Serial.println("------------------------------------------------");
 }
 
 void loop()
@@ -37,69 +37,74 @@ void loop()
   // ESTADO: ACORDADO - SIMULAÇÃO DO DEEP SLEEP
   if (!esta_dormindo)
   {
-    Serial.println("\nNOVA LEITURA -------------");
+    Serial.println("[modo]: leitura de sensores");
 
     // PASSO 1: ler os sensores
-    Serial.println("Lendo dados dos sensores...");
+    Serial.println("\nbuscanco sensores...");
     DadosSensores dados = gerenciadorSensores.lerSensores();
 
     // PASSO 2: mostrar dados no console serial
-    Serial.println("\nDADOS OBTIDOS:");
-    Serial.print("Timestamp: ");
+    Serial.println("\n[i] dados obtidos:");
+    Serial.print("  timestamp: ");
     Serial.println(dados.timestamp_leitura);
 
     if (dados.temperatura_valida)
     {
-      Serial.print("Temperatura: ");
+      Serial.print("  temperatura: ");
       Serial.print(dados.temperatura);
       Serial.println(" °C");
     }
     else
     {
-      Serial.println("[!] Temperatura: Indisponível");
+      Serial.println("  temperatura: indisponível");
     }
 
     if (dados.luminosidade_valida)
     {
-      Serial.print("Luminosidade: ");
+      Serial.print("  luminosidade: ");
       Serial.print(dados.luminosidade);
       Serial.println(" lux");
     }
     else
     {
-      Serial.println("[!] Luminosidade: Indisponível");
+      Serial.println("  luminosidade: indisponível");
     }
     //**********************************************************
     // PASSO 3: TO DOOOOOO (permanência de dados + checksun)
     //**********************************************************
 
-    Serial.println("Tarefas concluídas");
+    Serial.println("\nleitura finalizada");
+    Serial.println("------------------------------------------------");
 
     // PASSO 4: entrar em modo deep sleep simulado
-    Serial.println("Definindo timer de sono para" + String(TEMPO_DEEP_SLEEP_DEMO / 1000) + " segundos...");
+    Serial.println("[modo]: preparação para baixo consumo");
+    Serial.println("\ndefinindo timer deep sleep para " + String(TEMPO_DEEP_SLEEP_DEMO / 1000) + " segundos");
     esta_dormindo = true;
     tempo_inicio_sono = millis();
-    Serial.println("\nClido de sono pode ser interrompido pressionando o botão conectado ao pino " + String(PINO_BOTAO));
-    Serial.println("\nEntrando em modo deep sleep");
+    Serial.println("clico de sono pode ser interrompido pressionando");
+    Serial.println("o botão GPIO conectado ao pino " + String(PINO_BOTAO));
+    Serial.println("------------------------------------------------");
+    Serial.println("[status]: deep sleep zZz");
   }
 
   // ESTADO: DORMINDO - SIMULAÇÃO DO DEEP SLEEP
 
   else
   {
-
-    // PASSO 1: verificar se tempo de sonou terminou (WAKE-UP PROGRAMADO)
+    // PASSO 1: verificar se tempo de sonou terminou
     if (millis() - tempo_inicio_sono >= TEMPO_DEEP_SLEEP_DEMO)
     {
       esta_dormindo = false;
-      Serial.println("\nAcordado por TIMER");
+      Serial.println("[status]: wake-up programado");
+      Serial.println("------------------------------------------------");
     }
 
-    // PASSO 2: verificar se botão foi pressionado (WAKE-UP MANUAL)
+    // PASSO 2: verificar se botão foi pressionado
     if (digitalRead(PINO_BOTAO) == LOW)
     {
       esta_dormindo = false;
-      Serial.println("\nAcordado por BOTÃO");
+      Serial.println("[status]: wake-up manual");
+      Serial.println("------------------------------------------------");
       delay(300); // debounce simples
 
       // esperar botão ser solto
@@ -110,14 +115,6 @@ void loop()
 
       // reinicia o contador do sono
       tempo_inicio_sono = millis();
-    }
-
-    // PASSO EXTRA: log sinal de vida
-    static unsigned long ultimo_pisca = 0;
-    if (millis() - ultimo_pisca > 1000)
-    {
-      Serial.print(".");
-      ultimo_pisca = millis();
     }
   }
   delay(200);
