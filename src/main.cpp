@@ -1,15 +1,19 @@
 #include "config.h"
 #include "gerenciador_armazenamento.h"
 #include "gerenciador_sensores.h"
+#include "gerenciador_sleep.h"
 #include "gerenciador_time.h"
+#include "gerenciador_upload.h"
 #include "gerenciador_wifi.h"
 #include "Arduino.h"
 
 // cria o gerenciador de sensores
 GerenciadorArmazenamento gerenciadorArmazenamento;
 GerenciadorSensores gerenciadorSensores;
+GerenciadorSleep gerenciadorSleep;
 GerenciadorTempo gerenciadorTempo;
 GerenciadorWiFi gerenciadorWiFi;
+GerenciadorUpload gerenciadorUpload;
 
 // estado de deep sleep simulado
 bool esta_dormindo = false;
@@ -129,23 +133,15 @@ void loop()
 
     if (gerenciadorWiFi.estaConectado())
     {
-      Serial.println("tentando enviar dados pendentes...");
-      // pegar dados do arquivo e enviar
-      gerenciadorWiFi.enviarDados("dados de exemplo"); // por enquanto
+      Serial.println("wifi disponivel - tentando enviar dados pendentes");
+      gerenciadorUpload.enviarDadosPendentes();
+    }
+    else
+    {
+      Serial.println("sem wifi - dados mantidos localmente");
     }
 
-    Serial.println("\nleitura finalizada");
-    Serial.println("------------------------------------------------");
-
-    // PASSO 4: entrar em modo deep sleep simulado
-    Serial.println("[modo]: preparação para baixo consumo");
-    Serial.println("\ndefinindo timer deep sleep para " + String(TEMPO_DEEP_SLEEP_DEMO / 1000) + " segundos");
-    esta_dormindo = true;
-    tempo_inicio_sono = millis();
-    Serial.println("clico de sono pode ser interrompido pressionando");
-    Serial.println("o botão GPIO conectado ao pino " + String(PINO_BOTAO));
-    Serial.println("------------------------------------------------");
-    Serial.println("[status]: deep sleep zZz");
+    gerenciadorSleep.entrarDeepSleep();
   }
 
   delay(200);
