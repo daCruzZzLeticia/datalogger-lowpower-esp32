@@ -9,11 +9,19 @@
 #ifdef __WOKWI__
 #define AMBIENTE_WOKWI true
 #define AMBIENTE_FISICO false
-#pragma message "Compilando para WOKWI (Simulação)..."
+#pragma message "🔧 Ambiente: WOKWI (Simulação)"
+
+// método 2: verifica variáveis de ambiente do PlatformIO
+#elif defined(PLATFORMIO) && defined(ENV_WOKWI)
+#define AMBIENTE_WOKWI true
+#define AMBIENTE_FISICO false
+#pragma message "🔧 Ambiente: WOKWI via PlatformIO"
+
+// método 3: se não é Wokwi, assume que é físico
 #else
 #define AMBIENTE_WOKWI false
 #define AMBIENTE_FISICO true
-#pragma message "Compilando para ESP32 FÍSICO..."
+#pragma message "🔧 Ambiente: ESP32 FÍSICO"
 #endif
 
 // CONFIGURAÇÕES DE PINOS
