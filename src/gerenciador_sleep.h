@@ -27,7 +27,7 @@ public:
         Serial.println("esp32: configurando deep sleep real");
 
         // 1. configura wake-up por timer (5 minutos em microssegundos)
-        esp_sleep_enable_timer_wakeup(TEMPO_AMOSTRAGEM_REAL * 1000);
+        esp_sleep_enable_timer_wakeup(TEMPO_DEEP_SLEEP_DEMO * 1000);
 
         // 2. configura wake-up por botao
         esp_sleep_enable_ext0_wakeup((gpio_num_t)PINO_BOTAO, 0); // LOW acorda
