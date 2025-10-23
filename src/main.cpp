@@ -148,35 +148,5 @@ void loop()
     Serial.println("[status]: deep sleep zZz");
   }
 
-  // ESTADO: DORMINDO - SIMULAÇÃO DO DEEP SLEEP
-
-  else
-  {
-    // PASSO 1: verificar se tempo de sonou terminou
-    if (millis() - tempo_inicio_sono >= TEMPO_DEEP_SLEEP_DEMO)
-    {
-      esta_dormindo = false;
-      Serial.println("[status]: wake-up programado");
-      Serial.println("------------------------------------------------");
-    }
-
-    // PASSO 2: verificar se botão foi pressionado
-    if (digitalRead(PINO_BOTAO) == LOW)
-    {
-      esta_dormindo = false;
-      Serial.println("[status]: wake-up manual");
-      Serial.println("------------------------------------------------");
-      delay(300); // debounce simples
-
-      // esperar botão ser solto
-      while (digitalRead(PINO_BOTAO) == LOW)
-      {
-        delay(50);
-      }
-
-      // reinicia o contador do sono
-      tempo_inicio_sono = millis();
-    }
-  }
   delay(200);
 }
