@@ -10,11 +10,11 @@
 class GerenciadorUpload
 {
 private:
-    const char *servidor_url = "http://seuservidor.com/api/dados"; // ex. SUBSTITUIR DPS
+    const char *servidor_url;
     bool upload_habilitado;
 
 public:
-    GerenciadorUpload()
+    GerenciadorUpload() : servidor_url(SERVIDOR_URL)
     {
         upload_habilitado = true;
     }

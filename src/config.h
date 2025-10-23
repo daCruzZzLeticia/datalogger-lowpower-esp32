@@ -55,6 +55,7 @@ const float RESISTENCIA_LDR = 33.0;  // resistência do LDR em 10 lux
 
 // URLs do servidor
 #ifdef AMBIENTE_WOKWI
+
 const char *SERVIDOR_URL = "http://localhost:3000/api/dados"; // teste local
 #else
 const char *SERVIDOR_URL = "https://seuserver.com/api/dados"; // servidor real
