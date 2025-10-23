@@ -9,7 +9,7 @@
 
 struct DadosTempo
 {
-    unsigned long timestamp_unix;      // timestamp unix
+    unsigned long epoch;               // timestamp unix
     unsigned long millis_sincronizado; // millis() quando foi sincronizado
     bool sincronizado;                 // se o tempo está sincronizado com NTP
     char data_hora[20];                // string no formato "2024-01-15 14:30:25"
@@ -66,13 +66,66 @@ private:
 #endif
     }
 
-    // converte timestamp_unix para string legível
-    void timestamp_unixParaString(unsigned long timestamp_unix, char *buffer, size_t tamanho)
+    // converte epoch para string legível
+    void epochParaString(unsigned long epoch, char *buffer, size_t tamanho)
     {
-        time_t rawtime = timestamp_unix;
+        time_t rawtime = epoch;
         struct tm *timeinfo = localtime(&rawtime);
 
         strftime(buffer, tamanho, "%Y-%m-%d %H:%M:%S", timeinfo);
+    }
+
+    // MÉTODOS PÚBLICOS
+
+public:
+    DadosTempo obterTempo()
+    {
+        DadosTempo tempo;
+
+        if (!tempo_inicializado)
+        {
+            Serial.println("  tempo não inicializado: chamando iniciar()...");
+            // iniciar();
+        }
+
+        tempo.sincronizado = true;
+
+#ifdef AMBIENTE_WOKWI
+        // no Wokwi, sempre tem tempo sincronizado
+        time_t agora;
+        time(&agora);
+        tempo.epoch = agora;
+        tempo.millis_sincronizado = millis();
+
+#else
+        // No físico, tenta obter tempo real
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo))
+        {
+            // Tempo NTP disponível
+            time_t agora;
+            time(&agora);
+            tempo.epoch = agora;
+            tempo.millis_sincronizado = millis();
+            tempo.sincronizado = true;
+
+            // atualiza fallback
+            epoch_fallback = agora;
+            ultima_sincronizacao = millis();
+        }
+        else
+        {
+            // NTP não disponível - estima baseado no último sync
+            tempo.epoch = epoch_fallback + (millis() - ultima_sincronizacao) / 1000;
+            tempo.millis_sincronizado = millis();
+            tempo.sincronizado = false;
+        }
+#endif
+
+        // converte para string legível
+        epochParaString(tempo.epoch, tempo.data_hora, sizeof(tempo.data_hora));
+
+        return tempo;
     }
 };
 
