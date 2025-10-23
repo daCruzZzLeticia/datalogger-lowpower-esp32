@@ -1,6 +1,6 @@
 // sleep_manager.h
-#ifndef SLEEP_MANAGER_H
-#define SLEEP_MANAGER_H
+#ifndef GERENCIADOR_SLEEP_H
+#define GERENCIADOR_SLEEP_H
 
 #include "config.h"
 #include "Arduino.h"

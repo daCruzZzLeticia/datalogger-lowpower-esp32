@@ -2,3 +2,6 @@
 .vscode/*
 include/*
 test/*
+
+#dados privados
+src/config_privado.h

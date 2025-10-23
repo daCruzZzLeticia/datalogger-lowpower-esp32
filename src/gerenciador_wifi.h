@@ -1,5 +1,5 @@
-#ifndef GERENCIAODR_WIFI_H
-#define GERENCIAODR_WIFI_H
+#ifndef GERENCIADOR_WIFI_H
+#define GERENCIADOR_WIFI_H
 
 #include "config.h"
 #include "Arduino.h"
@@ -19,29 +19,33 @@ public:
     }
     // tenta conectar ao WiFi (simples)
 
+    // wifi_manager.h - ATUALIZAR O MÉTODO conectar()
     bool conectar()
     {
-        Serial.println("\ntentando conectar WiFi...");
+        Serial.println("\ntentando conectar wifi...");
 
 #ifdef AMBIENTE_WOKWI
-        // no wokwi: simula conexão
-        Serial.println("WOKWI: simulando conexão WiFi");
+        // wokwi: simulacao
+        Serial.println("wokwi: simulando conexao wifi");
         delay(1000);
         wifi_conectado = true;
-        Serial.println("WiFi simulado conectado");
+        Serial.println("wifi simulado conectado");
         return true;
 #else
-        // no físico: conexão real
-        WiFi.begin("SUA_REDE", "SUA_SENHA"); // Você coloca suas credenciais depois
+        // esp32 fisico: conexao real com credenciais do config.h
+        WiFi.begin(WIFI_SSID, WIFI_SENHA);
 
-        Serial.print("⏳ Conectando");
-        for (int i = 0; i < 10; i++)
+        Serial.print("conectando a rede: ");
+        Serial.print(WIFI_SSID);
+        Serial.print(" ...");
+
+        for (int i = 0; i < 15; i++)
         {
             if (WiFi.status() == WL_CONNECTED)
             {
                 wifi_conectado = true;
-                Serial.println("\n✅ WiFi conectado!");
-                Serial.print("📶 IP: ");
+                Serial.println("\nwifi conectado!");
+                Serial.print("ip: ");
                 Serial.println(WiFi.localIP());
                 return true;
             }
@@ -49,7 +53,7 @@ public:
             Serial.print(".");
         }
 
-        Serial.println("\n❌ Falha ao conectar WiFi");
+        Serial.println("\nfalha ao conectar wifi");
         wifi_conectado = false;
         return false;
 #endif
