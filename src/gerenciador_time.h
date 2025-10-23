@@ -1,4 +1,3 @@
-// time_manager.h
 #ifndef GERENCIADOR_TIME_H
 #define GERENCIADOR_TIME_H
 

@@ -1,6 +1,5 @@
-// sensor_manager.h
-#ifndef SENSOR_MANAGER_H
-#define SENSOR_MANAGER_H
+#ifndef GERENCIADOR_SENSOR_H
+#define GERENCIADOR_SENSOR_H
 
 #include "config.h"
 #include "Arduino.h"
