@@ -2,12 +2,14 @@
 #include "gerenciador_armazenamento.h"
 #include "gerenciador_sensores.h"
 #include "gerenciador_time.h"
+#include "gerenciador_wifi.h"
 #include "Arduino.h"
 
 // cria o gerenciador de sensores
+GerenciadorArmazenamento gerenciadorArmazenamento;
 GerenciadorSensores gerenciadorSensores;
 GerenciadorTempo gerenciadorTempo;
-GerenciadorArmazenamento gerenciadorArmazenamento;
+GerenciadorWiFi gerenciadorWiFi;
 
 // estado de deep sleep simulado
 bool esta_dormindo = false;
@@ -53,6 +55,8 @@ void setup()
   {
     Serial.println("ERRO: LittleFS não pôde ser inicializado");
   }
+  // tenta conectar wi-fi
+  gerenciadorWiFi.conectar();
 
   // mostra status completo do sistema
   Serial.println("\n📊 STATUS DO SISTEMA:");
@@ -72,7 +76,7 @@ void loop()
     Serial.println("[modo]: leitura de sensores");
 
     // passo 1: obter timestamp atual
-    Serial.println("🕐 Obtendo timestamp...");
+    Serial.println("obtendo timestamp...");
     DadosTempo dados_tempo = gerenciadorTempo.obterTempo();
 
     // passo 2: ler os sensores
@@ -121,6 +125,13 @@ void loop()
     else
     {
       Serial.println("falha ao salvar dados!");
+    }
+
+    if (gerenciadorWiFi.estaConectado())
+    {
+      Serial.println("tentando enviar dados pendentes...");
+      // pegar dados do arquivo e enviar
+      gerenciadorWiFi.enviarDados("dados de exemplo"); // por enquanto
     }
 
     Serial.println("\nleitura finalizada");
