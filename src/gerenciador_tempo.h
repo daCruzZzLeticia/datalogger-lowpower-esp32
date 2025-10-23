@@ -43,10 +43,10 @@ private:
         return true;
 
 #else
-        // No ESP32 físico - sincronização real
+        // no ESP32 físico - sincronização real
         configTime(gmt_offset_sec, daylight_offset_sec, ntp_server);
 
-        // Aguarda a sincronização (máximo 10 segundos)
+        // aguarda a sincronização (máximo 10 segundos)
         Serial.print("aguardando sincronização NTP");
         for (int i = 0; i < 20; i++)
         {
@@ -64,6 +64,15 @@ private:
         Serial.println("\nfalha na sincronização NTP");
         return false;
 #endif
+    }
+
+    // converte timestamp_unix para string legível
+    void timestamp_unixParaString(unsigned long timestamp_unix, char *buffer, size_t tamanho)
+    {
+        time_t rawtime = timestamp_unix;
+        struct tm *timeinfo = localtime(&rawtime);
+
+        strftime(buffer, tamanho, "%Y-%m-%d %H:%M:%S", timeinfo);
     }
 };
 
