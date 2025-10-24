@@ -12,40 +12,63 @@ private:
     unsigned long ultima_tentativa;
 
 public:
+    /*
+     * construtor - inicializa o gerenciador wifi
+     */
     GerenciadorWiFi()
     {
         wifi_conectado = false;
         ultima_tentativa = 0;
     }
-    // tenta conectar ao WiFi (simples)
 
-    // wifi_manager.h - ATUALIZAR O MÉTODO conectar()
+    /*
+     * tenta conectar ao wifi nos dois ambientes
+     * no wokwi: usa rede real "Wokwi-GUEST"
+     * no fisico: usa credenciais do config.h
+     */
     bool conectar()
     {
-        Serial.println("\ntentando conectar wifi...");
+        Serial.println("\nconectando ao wifi...");
 
 #ifdef AMBIENTE_WOKWI
-        // wokwi: simulacao
-        Serial.println("wokwi: simulando conexao wifi");
-        delay(1000);
-        wifi_conectado = true;
-        Serial.println("wifi simulado conectado");
-        return true;
-#else
-        // esp32 fisico: conexao real com credenciais do config.h
-        WiFi.begin(WIFI_SSID, WIFI_SENHA);
+        // wokwi: conexao real com rede simulada do wokwi
+        Serial.println("wokwi: usando rede Wokwi-GUEST");
+        WiFi.begin("Wokwi-GUEST", "", 6); // canal 6 para conexao rapida
 
-        Serial.print("conectando a rede: ");
-        Serial.print(WIFI_SSID);
-        Serial.print(" ...");
-
+        Serial.print("conectando");
         for (int i = 0; i < 15; i++)
         {
             if (WiFi.status() == WL_CONNECTED)
             {
                 wifi_conectado = true;
+                Serial.println("\nwokwi: wifi conectado!");
+                Serial.print("endereco ip: ");
+                Serial.println(WiFi.localIP());
+                return true;
+            }
+            delay(500);
+            Serial.print(".");
+        }
+
+        Serial.println("\n[!] wokwi: falha ao conectar wifi");
+        wifi_conectado = false;
+        return false;
+
+#else
+        // esp32 fisico: conexao real com credenciais do config.h
+        Serial.print("conectando a rede: ");
+        Serial.print(WIFI_SSID);
+        Serial.print(" ...");
+
+        WiFi.begin(WIFI_SSID, WIFI_SENHA);
+
+        for (int i = 0; i < 20; i++) // mais tentativas no fisico
+        {
+            if (WiFi.status() == WL_CONNECTED)
+            {
+                wifi_conectado = true;
                 Serial.println("\nwifi conectado!");
-                Serial.print("ip: ");
+                Serial.print("endereco ip: ");
                 Serial.println(WiFi.localIP());
                 return true;
             }
@@ -53,51 +76,76 @@ public:
             Serial.print(".");
         }
 
-        Serial.println("\nfalha ao conectar wifi");
+        Serial.println("\n[!] falha ao conectar wifi");
         wifi_conectado = false;
         return false;
 #endif
     }
 
-    /**
-     * Verifica se está conectado
+    /*
+     * verifica se esta conectado ao wifi
+     * em ambos ambientes verifica o status real da conexao
      */
     bool estaConectado()
     {
 #ifdef AMBIENTE_WOKWI
-        return wifi_conectado; // No Wokwi retorna o estado simulado
+        // wokwi: verifica status real da conexao
+        return WiFi.status() == WL_CONNECTED;
 #else
-        return WiFi.status() == WL_CONNECTED; // No físico verifica real
+        // fisico: verifica status real da conexao
+        return WiFi.status() == WL_CONNECTED;
 #endif
     }
 
-    /**
-     * Faz upload SIMULADO dos dados
+    /*
+     * envia dados via http (apenas verificacao de conexao)
+     * o upload real e feito pelo gerenciador_upload.h
      */
-    bool enviarDados(const String &dados_csv)
+    bool verificarConexaoUpload()
     {
         if (!estaConectado())
         {
-            Serial.println("❌ Sem WiFi para enviar dados");
+            Serial.println("[!] sem conexao wifi para enviar dados");
             return false;
         }
 
-        Serial.println("\n📤 Enviando dados para servidor...");
+        Serial.println("\nverificando conexao para upload...");
 
-#ifdef AMBIENTE_WOKWI
-        // No Wokwi: Simula upload
-        Serial.println("🔮 WOKWI: Simulando upload HTTP");
-        Serial.println("📄 Dados que seriam enviados:");
-        Serial.println(dados_csv);
-        delay(500);
-        Serial.println("✅ Upload simulado com sucesso!");
+#ifdef AMBIENTE_WIFI
+        // wokwi: simula verificacao de conexao
+        Serial.println("wokwi: conexao wifi verificada - pronto para upload");
+        Serial.println("servidor: " + String(SERVIDOR_URL));
         return true;
 #else
-        // No físico: Upload real (implementaremos depois)
-        Serial.println("📡 ESP32: Preparado para upload real");
-        // Aqui virá o código HTTP real depois
+        // fisico: verifica conexao real
+        Serial.println("conexao wifi verificada - pronto para upload");
+        Serial.println("servidor: " + String(SERVIDOR_URL));
         return true;
 #endif
+    }
+
+    /*
+     * retorna o endereco ip atual (para debug)
+     */
+    String obterIP()
+    {
+        if (estaConectado())
+        {
+            return WiFi.localIP().toString();
+        }
+        return "desconectado";
+    }
+
+    /*
+     * retorna a forca do sinal wifi em dBm
+     */
+    int obterForcaSinal()
+    {
+        if (estaConectado())
+        {
+            return WiFi.RSSI();
+        }
+        return 0;
     }
 };
 
