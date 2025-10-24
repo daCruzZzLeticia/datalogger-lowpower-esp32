@@ -6,57 +6,46 @@
 #include "gerenciador_sensores.h"
 #include "gerenciador_time.h"
 
-// BIBLIOTECAS LittleFS - DIFERENTES PLATAFORMAS
+// BIBLIOTECAS LittleFS
 
 #ifdef AMBIENTE_WOKWI
-// No Wokwi, simulação do sistema de arquivos
+// wokwi: simulacao
 #include <FS.h>
-#pragma message "🔧 Wokwi: Usando FS simulado"
 #else
-// No ESP32 físico - LittleFS real
+// esp32 fisico: LittleFS real
 #include "LittleFS.h"
-#pragma message "🔧 ESP32 Físico: Usando LittleFS"
 #endif
 
-// ESTRUTURA PARA UM REGISTRO COMPLETO
+// ESTRUTURA PARA REGISTRO COMPLETO
 
 struct RegistroDados
 {
     DadosTempo tempo;
     DadosSensores sensores;
-    uint32_t checksum; // para verificar integridade
+    uint32_t checksum;
 };
 
-// CLASSE DO GERENCIADOR DE ARMAZENAMENTO LittleFS
+// CLASSE GERENCIADOR ARMAZENAMENTO
 
 class GerenciadorArmazenamento
 {
 private:
     bool sistema_arquivos_inicializado;
     const char *nome_arquivo = "/dados_log.csv";
-    const char *nome_arquivo_pendente = "/dados_pendente.csv";
-
-    // calcula checksum simples para verificar integridade
 
     uint32_t calcularChecksum(const RegistroDados &registro)
     {
         uint32_t checksum = 0;
-
-        // Usa os dados principais para calcular checksum
         checksum += (uint32_t)registro.tempo.epoch;
         checksum += (uint32_t)(registro.sensores.temperatura * 100);
         checksum += (uint32_t)(registro.sensores.luminosidade * 100);
         checksum += registro.sensores.timestamp_leitura;
-
         return checksum;
     }
-
-    // formata um registro para salvar em CSV
 
     String formatarRegistroCSV(const RegistroDados &registro)
     {
         String linha = "";
-
         linha += String(registro.tempo.epoch) + ",";
         linha += String(registro.tempo.data_hora) + ",";
         linha += String(registro.sensores.temperatura, 2) + ",";
@@ -64,7 +53,6 @@ private:
         linha += String(registro.sensores.temperatura_valida ? "1" : "0") + ",";
         linha += String(registro.sensores.luminosidade_valida ? "1" : "0") + ",";
         linha += String(registro.checksum);
-
         return linha;
     }
 
@@ -74,112 +62,71 @@ public:
         sistema_arquivos_inicializado = false;
     }
 
-    // inicializa o LittleFS (ou simulação no Wokwi)
+    // METODOS EXISTENTES (mantidos iguais)
 
     bool iniciar()
     {
         Serial.println("\ninicializando LittleFS...");
 
 #ifdef AMBIENTE_WOKWI
-        // No Wokwi, simulação do sistema de arquivos
-        Serial.println("wokwi: Sistema de arquivos simulado (LittleFS)");
+        Serial.println("wokwi: sistema de arquivos simulado");
         sistema_arquivos_inicializado = true;
-
 #else
-        // No ESP32 físico - LittleFS real
         if (!LittleFS.begin(true))
-        { // true = formatar se falhar
+        {
             Serial.println("falha ao montar LittleFS");
-            sistema_arquivos_inicializado = false;
             return false;
         }
-
         Serial.println("LittleFS montado com sucesso");
-
-        // mostra informações do sistema de arquivos
-        Serial.print("   espaço total: ");
-        Serial.print(LittleFS.totalBytes() / 1024.0);
-        Serial.println(" KB");
-
-        Serial.print("   espaço usado: ");
-        Serial.print(LittleFS.usedBytes() / 1024.0);
-        Serial.println(" KB");
-
         sistema_arquivos_inicializado = true;
 #endif
 
-        // cria o cabeçalho do arquivo se for a primeira vez
         criarCabecalho();
-
         return true;
     }
-
-    // salva um registro de dados no arquivo LittleFS
 
     bool salvarRegistro(const DadosTempo &tempo, const DadosSensores &sensores)
     {
         if (!sistema_arquivos_inicializado)
         {
-            Serial.println("LittleFS não inicializado");
+            Serial.println("LittleFS nao inicializado");
             return false;
         }
 
-        Serial.println("\nsalvando registro no LittleFS...");
+        Serial.println("\nsalvando registro...");
 
-        // cria estrutura completa
         RegistroDados registro;
         registro.tempo = tempo;
         registro.sensores = sensores;
         registro.checksum = calcularChecksum(registro);
 
-        // formata para CSV
         String linha_csv = formatarRegistroCSV(registro);
 
 #ifdef AMBIENTE_WOKWI
-        // no Wokwi, simula salvamento
-        Serial.println("registro CSV (LittleFS simulado):");
+        Serial.println("registro CSV (simulado):");
         Serial.println("   " + linha_csv);
-        Serial.println("wokwi: registro salvo no LittleFS simulado");
         return true;
-
 #else
-        // no físico, salva no LittleFS real
-        File arquivo = LittleFS.open(nome_arquivo, "a"); // "a" = append (adicionar ao final)
-
+        File arquivo = LittleFS.open(nome_arquivo, "a");
         if (!arquivo)
         {
-            Serial.println("falha ao abrir arquivo para escrita");
+            Serial.println("falha ao abrir arquivo");
             return false;
         }
-
-        // se o arquivo estiver vazio, adiciona cabeçalho
         if (arquivo.size() == 0)
         {
             arquivo.println("timestamp,data_hora,temperatura,luminosidade,temp_valida,lux_valida,checksum");
         }
-
-        // escreve a linha
         arquivo.println(linha_csv);
         arquivo.close();
-
-        Serial.println("registro salvo no LittleFS:");
-        Serial.println("   " + linha_csv);
-        Serial.println("dados armazenados com sucesso!");
-
+        Serial.println("dados salvos no LittleFS");
         return true;
 #endif
     }
 
-    // cria/verifica o cabeçalho do arquivo
-
     void criarCabecalho()
     {
-        Serial.println("\ncabeçalho LittleFS:");
-        Serial.println("   timestamp,data_hora,temperatura,luminosidade,temp_valida,lux_valida,checksum");
-
 #ifndef AMBIENTE_WOKWI
-
-        // no físico, verifica se precisa criar cabeçalho
         if (!LittleFS.exists(nome_arquivo))
         {
             File arquivo = LittleFS.open(nome_arquivo, "w");
@@ -187,35 +134,30 @@ public:
             {
                 arquivo.println("timestamp,data_hora,temperatura,luminosidade,temp_valida,lux_valida,checksum");
                 arquivo.close();
-                Serial.println("cabeçalho criado no arquivo LittleFS");
+                Serial.println("cabecalho criado no arquivo");
             }
         }
 #endif
     }
 
-    // verifica se um registro está íntegro
-
     bool verificarIntegridade(const RegistroDados &registro)
     {
         uint32_t checksum_calculado = calcularChecksum(registro);
         bool integro = (checksum_calculado == registro.checksum);
-
-        Serial.print("verificação de integridade: ");
+        Serial.print("verificacao de integridade: ");
         Serial.println(integro ? "OK" : "CORROMPIDO");
-
         return integro;
     }
 
-    // lista arquivos disponíveis (para debug)
-
     void listarArquivos()
     {
-        Serial.println("\n[i] arquivos no LittleFS:");
-
-#ifndef AMBIENTE_WOKWI
+        Serial.println("\narquivos no LittleFS:");
+#ifdef AMBIENTE_WOKWI
+        Serial.println("   [simulacao wokwi]");
+        Serial.println("   /dados_log.csv");
+#else
         File root = LittleFS.open("/");
         File arquivo = root.openNextFile();
-
         while (arquivo)
         {
             Serial.print("   ");
@@ -223,13 +165,122 @@ public:
             Serial.print(" (");
             Serial.print(arquivo.size());
             Serial.println(" bytes)");
-
             arquivo = root.openNextFile();
         }
+#endif
+    }
+
+    // METODOS NOVOS - LEITURA E CONTROLE DE UPLOAD
+
+    /**
+     * verifica se existem dados pendentes para upload
+     */
+    bool existemDadosPendentes()
+    {
+#ifdef AMBIENTE_WOKWI
+        // wokwi: sempre retorna true para teste
+        return true;
 #else
-        Serial.println("   [simulação wokwi - arquivos virtuais]");
-        Serial.println("   /dados_log.csv");
-        Serial.println("   /dados_pendente.csv");
+        if (!sistema_arquivos_inicializado)
+            return false;
+
+        File arquivo = LittleFS.open(nome_arquivo, "r");
+        if (!arquivo)
+            return false;
+
+        // pula cabecalho
+        arquivo.readStringUntil('\n');
+
+        // verifica se tem dados
+        bool tem_dados = arquivo.available() > 0;
+        arquivo.close();
+
+        return tem_dados;
+#endif
+    }
+
+    /**
+     * le dados do arquivo para enviar no upload
+     */
+    String lerDadosParaUpload()
+    {
+        Serial.println("lendo dados do arquivo para upload...");
+
+#ifdef AMBIENTE_WOKWI
+        // wokwi: dados de exemplo
+        String dados = "1705339825,2024-01-15 10:30:25,22.50,550.00,1,1,123456789";
+        Serial.println("dados para upload (simulados): " + dados);
+        return dados;
+#else
+        if (!sistema_arquivos_inicializado)
+        {
+            Serial.println("erro: LittleFS nao inicializado");
+            return "";
+        }
+
+        File arquivo = LittleFS.open(nome_arquivo, "r");
+        if (!arquivo)
+        {
+            Serial.println("erro: nao foi possivel abrir arquivo");
+            return "";
+        }
+
+        String dados = "";
+
+        // pula cabecalho
+        arquivo.readStringUntil('\n');
+
+        // le todas as linhas de dados
+        while (arquivo.available())
+        {
+            String linha = arquivo.readStringUntil('\n');
+            linha.trim();
+            if (linha.length() > 0)
+            {
+                if (dados.length() > 0)
+                {
+                    dados += ";"; // separador entre registros
+                }
+                dados += linha;
+            }
+        }
+        arquivo.close();
+
+        Serial.println("dados lidos: " + String(dados.length()) + " caracteres");
+        return dados;
+#endif
+    }
+
+    /**
+     * marca dados como enviados (limpa o arquivo)
+     */
+    bool marcarComoEnviado()
+    {
+        Serial.println("marcando dados como enviados...");
+
+#ifdef AMBIENTE_WOKWI
+        Serial.println("dados marcados como enviados (simulacao)");
+        return true;
+#else
+        if (!sistema_arquivos_inicializado)
+        {
+            Serial.println("erro: LittleFS nao inicializado");
+            return false;
+        }
+
+        File arquivo = LittleFS.open(nome_arquivo, "w");
+        if (!arquivo)
+        {
+            Serial.println("erro: nao foi possivel limpar arquivo");
+            return false;
+        }
+
+        // recria apenas o cabecalho
+        arquivo.println("timestamp,data_hora,temperatura,luminosidade,temp_valida,lux_valida,checksum");
+        arquivo.close();
+
+        Serial.println("arquivo limpo - dados marcados como enviados");
+        return true;
 #endif
     }
 };

@@ -7,7 +7,7 @@
 #include "gerenciador_wifi.h"
 #include "Arduino.h"
 
-// cria o gerenciador de sensores
+// gerenciadores do sistema
 GerenciadorArmazenamento gerenciadorArmazenamento;
 GerenciadorSensores gerenciadorSensores;
 GerenciadorSleep gerenciadorSleep;
@@ -15,134 +15,161 @@ GerenciadorTempo gerenciadorTempo;
 GerenciadorWiFi gerenciadorWiFi;
 GerenciadorUpload gerenciadorUpload;
 
-// estado de deep sleep simulado
+// controle de sleep simulado
 bool esta_dormindo = false;
 unsigned long tempo_inicio_sono = 0;
 
 void setup()
 {
   Serial.begin(115200);
-  delay(2000);
+  delay(1000);
 
-  Serial.println("\n🔍 VERIFICANDO AMBIENTE:");
-  Serial.print("AMBIENTE_WOKWI: ");
-  Serial.println(AMBIENTE_WOKWI ? "SIM" : "NÃO");
-  Serial.print("AMBIENTE_FISICO: ");
-  Serial.println(AMBIENTE_FISICO ? "SIM" : "NÃO");
+  Serial.println("\n[data logger] inicializando sistema");
+  Serial.println("==========================================");
 
-#ifdef __WOKWI__
-  Serial.println("__WOKWI__ definido: SIM");
-#else
-  Serial.println("__WOKWI__ definido: NÃO");
-#endif
-
-  delay(5000);
-
-  Serial.println("------------------------------------------------");
-  Serial.println("sistema data logger - temperatura e luminosidade");
-  Serial.println("------------------------------------------------");
-
-  Serial.println("[modo]: configuração do sistema");
-
-  // configura o pino do botão para wake-up
+  // configura pino do botao
   pinMode(PINO_BOTAO, INPUT_PULLUP);
-  Serial.println("\nbotão GPIO configurado no pino: " + String(PINO_BOTAO));
+  Serial.println("configurado botao no pino: " + String(PINO_BOTAO));
 
-  // passo 1. inicialização do gerenciador de sensores
-  gerenciadorSensores.iniciar(); // olha sensores disponíveis
+  // inicializa todos os sistemas
+  Serial.println("\ninicializando modulos:");
 
-  // passo 2. inicializa sistema de tempo NTP + RTC fallback
+  Serial.print("- sensores: ");
+  gerenciadorSensores.iniciar();
+  Serial.println("pronto");
+
+  Serial.print("- tempo: ");
   gerenciadorTempo.iniciar();
+  Serial.println("pronto");
 
-  // passo 3. inicializa LittleFS (sistema de arquivos)
-  if (!gerenciadorArmazenamento.iniciar())
+  Serial.print("- armazenamento: ");
+  if (gerenciadorArmazenamento.iniciar())
   {
-    Serial.println("ERRO: LittleFS não pôde ser inicializado");
+    Serial.println("pronto");
   }
-  // tenta conectar wi-fi
-  gerenciadorWiFi.conectar();
+  else
+  {
+    Serial.println("falha");
+  }
 
-  // mostra status completo do sistema
-  Serial.println("\n📊 STATUS DO SISTEMA:");
+  Serial.print("- wifi: ");
+  gerenciadorWiFi.conectar();
+  Serial.println(gerenciadorWiFi.estaConectado() ? "conectado" : "desconectado");
+
+  // status do sistema
+  Serial.println("\nstatus do sistema:");
   gerenciadorSensores.imprimirStatus();
   gerenciadorTempo.imprimirTempoAtual();
   gerenciadorArmazenamento.listarArquivos();
 
-  Serial.println("\nconfigurações concluídas!");
-  Serial.println("------------------------------------------------");
+  Serial.println("==========================================");
+  Serial.println("[data logger] sistema pronto para operacao");
+  Serial.println("==========================================");
 }
 
 void loop()
 {
-  // ESTADO: ACORDADO - SIMULAÇÃO DO DEEP SLEEP
+  // estado: acordado - fazer leituras
   if (!esta_dormindo)
   {
-    Serial.println("[modo]: leitura de sensores");
+    Serial.println("\n[data logger] iniciando ciclo de leitura");
 
-    // passo 1: obter timestamp atual
+    // obtem timestamp atual
     Serial.println("obtendo timestamp...");
     DadosTempo dados_tempo = gerenciadorTempo.obterTempo();
 
-    // passo 2: ler os sensores
-    Serial.println("\nbuscanco sensores...");
+    // le dados dos sensores
+    Serial.println("lendo sensores...");
     DadosSensores dados_sensores = gerenciadorSensores.lerSensores();
 
-    // passo 3: mostrar dados no console serial
-    Serial.println("\n[i] dados obtidos:");
-
-    Serial.print("  timestamp: ");
-    Serial.print(dados_tempo.epoch);
-    Serial.print(" (");
-    Serial.print(dados_tempo.data_hora);
-    Serial.println(")");
+    // exibe dados coletados
+    Serial.println("\ndados coletados:");
+    Serial.println("  timestamp: " + String(dados_tempo.epoch) + " (" + String(dados_tempo.data_hora) + ")");
 
     if (dados_sensores.temperatura_valida)
     {
-      Serial.print("  temperatura: ");
-      Serial.print(dados_sensores.temperatura);
-      Serial.println(" °C");
+      Serial.println("  temperatura: " + String(dados_sensores.temperatura, 2) + " graus celsius");
     }
     else
     {
-      Serial.println("  temperatura: indisponível");
+      Serial.println("  temperatura: sensor indisponivel");
     }
 
     if (dados_sensores.luminosidade_valida)
     {
-      Serial.print("  luminosidade: ");
-      Serial.print(dados_sensores.luminosidade);
-      Serial.println(" lux");
+      Serial.println("  luminosidade: " + String(dados_sensores.luminosidade, 2) + " lux");
     }
     else
     {
-      Serial.println("  luminosidade: indisponível");
+      Serial.println("  luminosidade: sensor indisponivel");
     }
 
-    // passo 4: permanecer de dados + checksun
-    Serial.println("\nsalvando dados no LittleFS...");
-    bool salvou = gerenciadorArmazenamento.salvarRegistro(dados_tempo, dados_sensores);
-
-    if (salvou)
+    // salva dados no armazenamento
+    Serial.println("\nsalvando dados...");
+    if (gerenciadorArmazenamento.salvarRegistro(dados_tempo, dados_sensores))
     {
-      Serial.println("dados salvos com sucesso!");
+      Serial.println("dados salvos com sucesso");
     }
     else
     {
-      Serial.println("falha ao salvar dados!");
+      Serial.println("falha ao salvar dados");
     }
 
+    // verifica e envia dados pendentes
+    Serial.println("\nverificando conexao para upload...");
     if (gerenciadorWiFi.estaConectado())
     {
-      Serial.println("wifi disponivel - tentando enviar dados pendentes");
-      gerenciadorUpload.enviarDadosPendentes();
+      Serial.println("wifi disponivel - iniciando upload de dados");
+      gerenciadorUpload.enviarComRetentativas(gerenciadorArmazenamento);
     }
     else
     {
-      Serial.println("sem wifi - dados mantidos localmente");
+      Serial.println("wifi indisponivel - dados mantidos localmente");
     }
 
+// controle de sleep
+#ifdef AMBIENTE_WOKWI
+    Serial.println("\n[data logger] entrando em modo sleep");
+    Serial.println("tempo de sleep: " + String(TEMPO_DEEP_SLEEP_DEMO / 1000) + " segundos");
+    Serial.println("aguardando timer ou acionamento do botao...");
+    esta_dormindo = true;
+    tempo_inicio_sono = millis();
+#else
     gerenciadorSleep.entrarDeepSleep();
+#endif
   }
 
-  delay(200);
+// estado: dormindo - apenas no wokwi
+#ifdef AMBIENTE_WOKWI
+  if (esta_dormindo)
+  {
+    // verifica se tempo de sleep acabou
+    if (millis() - tempo_inicio_sono >= TEMPO_DEEP_SLEEP_DEMO)
+    {
+      esta_dormindo = false;
+      Serial.println("\n[data logger] acordado por timer");
+    }
+
+    // verifica se botao foi pressionado
+    if (digitalRead(PINO_BOTAO) == LOW)
+    {
+      esta_dormindo = false;
+      Serial.println("\n[data logger] acordado por botao");
+      delay(300);
+      while (digitalRead(PINO_BOTAO) == LOW)
+        delay(50);
+      tempo_inicio_sono = millis();
+    }
+
+    // mostra sinal de atividade enquanto dorme
+    static unsigned long ultimo_pisca = 0;
+    if (millis() - ultimo_pisca > 1000)
+    {
+      Serial.print(".");
+      ultimo_pisca = millis();
+    }
+  }
+#endif
+
+  delay(100);
 }
